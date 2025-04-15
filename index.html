@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PWA 示範</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#4CAF50">
+</head>
+<body>
+  <h1>歡迎來到我的 PWA 示範</h1>
+  <p>你可以將這個網頁加到桌面使用喔～</p>
+  
+  <div id="iosPromptBubble" class="hidden">
+    <div class="bubble">
+      📲 iPhone 使用者：<br>
+      請點擊 Safari 下方的 <strong>分享按鈕</strong>，然後選擇 <strong>「加入主畫面」</strong>！
+      <button onclick="this.parentElement.parentElement.style.display='none'">關閉</button>
+    </div>
+  </div>
+
+  <button id="installBtn" class="hidden">➕ 加到主畫面</button>
+
+  <script>
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBtn').classList.remove('hidden');
+
+      document.getElementById('installBtn').addEventListener('click', () => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(choice => {
+          if (choice.outcome === 'accepted') {
+            console.log('使用者接受安裝');
+          } else {
+            console.log('使用者拒絕安裝');
+          }
+          deferredPrompt = null;
+        });
+      });
+    });
+
+    const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const isInStandalone = ('standalone' in navigator) && navigator.standalone;
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    if (isIos && isSafari && !isInStandalone) {
+      document.getElementById('iosPromptBubble').classList.remove('hidden');
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('✅ SW 已註冊'))
+        .catch(err => console.log('❌ SW 註冊失敗:', err));
+    }
+  </script>
+</body>
+</html>
